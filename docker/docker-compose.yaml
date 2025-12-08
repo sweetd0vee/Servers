@@ -1,0 +1,36 @@
+services:
+  llama-server:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    container_name: vm_llm_server
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/models
+    environment:
+      - GGML_CPU_N_THREADS=16
+    command: >
+      --model /models/saiga_yandexgpt_8b.Q8_0.gguf
+      --port 8080
+      --host 0.0.0.0
+      --ctx-size 2048
+      --no-mmap
+    mem_limit: 16g
+    cpus: 16
+    restart: unless-stopped
+
+  vm-dashboard:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: vm_dashboard
+    ports:
+      - "8050:8050"
+    volumes:
+      - ./data:/app/data:ro
+    environment:
+      - DASH_DATA_DIR=/app/data
+    depends_on:
+      - llama-server
+    mem_limit: 2g
+    cpus: 2
+    restart: unless-stopped
