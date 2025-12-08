@@ -440,7 +440,7 @@ def main():
         <div class="metric-card", style="color: black;">
             <h3>Всего серверов</h3>
             <h1>{metrics['total_servers']}</h1>
-            <p>**Период: {metrics['period']}**</p>
+            <p><strong>Период: {metrics['period']}</strong></p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -448,9 +448,9 @@ def main():
         st.markdown(f"""
         <div class="metric-card", style="color: black;">
             <h3>Нагрузка CPU</h3>
-            <p>🟢 Низкая: {metrics['cpu_low']} серверов</p>
-            <p>🟡 Нормальная: {metrics['cpu_normal']} серверов</p>
-            <p>🔴 Высокая: {metrics['cpu_high']} серверов</p>
+            <p>🟢 Низкая: <strong>{metrics['cpu_low']}</strong> серверов</p>
+            <p>🟡 Нормальная: <strong>{metrics['cpu_normal']}</strong> серверов</p>
+            <p>🔴 Высокая: <strong>{metrics['cpu_high']}</strong> серверов</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -458,9 +458,9 @@ def main():
         st.markdown(f"""
         <div class="metric-card", style="color: black;">
             <h3>Нагрузка памяти</h3>
-            <p>🟢 Низкая: {metrics['mem_low']} серверов</p>
-            <p>🟡 Нормальная: {metrics['mem_normal']} серверов</p>
-            <p>🔴 Высокая: {metrics['mem_high']} серверов</p>
+            <p>🟢 Низкая: <strong>{metrics['mem_low']}</strong> серверов</p>
+            <p>🟡 Нормальная: <strong>{metrics['mem_normal']}</strong> серверов</p>
+            <p>🔴 Высокая: <strong>{metrics['mem_high']}</strong> серверов</p>
         </div>
         """, unsafe_allow_html=True)
 
