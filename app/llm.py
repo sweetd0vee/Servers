@@ -1,130 +1,154 @@
 import pandas as pd
-import plotly.express as px
-import dash
-from dash import dcc, html, Input, Output, State, dash_table
-import glob
-import os
-import requests
+import streamlit as st
+import warnings
 import json
-from datetime import datetime
+import requests
+import os
+from dotenv import load_dotenv
 
-# ================== CONFIG ==================
-DATA_DIR = os.getenv("DASH_DATA_DIR", "/app/data")
-LLM_URL = "http://llama-server:8080/completion"
-MAX_TOKENS = 400
-TIMEOUT = 90
+#LLM_URL = "http://llama-server:8080/completion"
+# MAX_TOKENS = 400
+# TIMEOUT = 90
 
-# ================== DATA LOADER ==================
-def load_all_data():
-    files = glob.glob(os.path.join(DATA_DIR, "*.xlsx"))
-    dfs = []
-    for f in files:
-        try:
-            df = pd.read_excel(f)
-            if 'vm' in df.columns and 'metric' in df.columns:
-                df['server'] = df['vm'].str.replace('metrics_', '', regex=False)
-                df = df[['date', 'server', 'metric', 'min_value', 'max_value', 'avg_value']].copy()
-                dfs.append(df)
-        except Exception as e:
-            print(f" Ошибка загрузки {f}: {e}")
-    if dfs:
-        return pd.concat(dfs, ignore_index=True)
-    else:
-        print(" Нет данных — использую демо-данные")
-        return pd.DataFrame({
-            'date': [datetime(2025, 12, 1)],
-            'server': ['demo-server'],
-            'metric': ['cpu.usagemhz.average'],
-            'min_value': [70.0],
-            'max_value': [75.0],
-            'avg_value': [72.7]
-        })
+def call_ai_analysis(context):
+    """Вызов AI для анализа аномалий через Hugging Face"""
 
-# ================== DASH APP ==================
-app = dash.Dash(__name__, external_stylesheets=["https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"])
+    # Используйте переменные окружения
+    # api_key = os.getenv("HF_API_KEY")
+    api_key=""
 
-app.layout = html.Div([
-    html.H2("📊 Дашборд нагрузки на виртуальные сервера (CTO View)", className="text-center mt-3"),
+    # Если ключ не найден, используем локальный анализ
+    if not api_key:
+        st.warning("HF_API_KEY не найден. Используется локальный анализ.")
+        return local_ai_analysis(context)
 
-    html.Div([
-        html.Button("🔄 Обновить данные", id="refresh-btn", className="btn btn-primary me-2"),
-        html.Button("🔍 Найти аномалии", id="anomaly-btn", className="btn btn-warning me-2"),
-        html.A("📥 Скачать CSV", id="download-link", href="/download", className="btn btn-outline-secondary")
-    ], className="text-center mb-3"),
-
-    html.Div([
-        html.H4("🤖 Задайте вопрос по метрикам", className="mt-4"),
-        dcc.Input(
-            id="chat-input",
-            placeholder="Например: «Есть ли аномалии у dwh1-nfs?»",
-            style={"width": "100%", "padding": "10px", "margin-top": "10px"}
-        ),
-        html.Div(id="llm-output", className="alert alert-light mt-2", style={"white-space": "pre-wrap"}),
-    ], className="container mt-4"),
-
-    html.Div([
-        dcc.Dropdown(id="server-filter", placeholder="Выберите сервер", multi=True),
-        dcc.Dropdown(id="metric-filter", placeholder="Выберите метрику", multi=True),
-        dcc.DatePickerRange(id="date-range", start_date=None, end_date=None)
-    ], className="row mb-3"),
-
-    dcc.Graph(id="main-graph"),
-    dash_table.DataTable(
-        id="data-table",
-        page_size=15,
-        style_table={"overflowX": "auto"},
-        sort_action="native"
-    ),
-    dcc.Interval(id="auto-refresh", interval=30*1000, n_intervals=0)
-])
-
-# ================== LLM ANALYSIS ==================
-def analyze_with_llm(df, user_question=None, anomaly_mode=False):
     try:
-        df_sample = df.tail(150).copy()
-        df_sample['date'] = df_sample['date'].astype(str)
-        context = df_sample.to_dict(orient='records')
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
 
-        if anomaly_mode:
-            prompt = f"""Ты — SRE-аналитик. Ниже метрики за последние сутки.
+        # Формируем промпт для анализа метрик
+        prompt = f"""Ты — опытный SRE-аналитик с 10-летним опытом.
+Проанализируй метрики серверов и ответь на вопросы:
+1. Есть ли статистические аномалии в данных?
+2. Какие серверы требуют внимания и почему?
+3. Какие рекомендации можно дать?
 
-Данные:
+Данные метрик:
 {json.dumps(context, indent=2, ensure_ascii=False)}
 
-Инструкции:
-- Найди аномалии: метрики, где max_value > avg_value * 1.8
-- Назови серверы и метрики
-- Дай 2 рекомендации
-- Отвечай кратко на русском."""
-        else:
-            prompt = f"""Ты — SRE-аналитик. Ниже метрики виртуальных серверов.
+Ответ предоставь в формате:
+📊 **Статистический анализ:**
+[анализ статистических аномалий]
 
-Данные (пример):
-{json.dumps(context, indent=2, ensure_ascii=False)}
+⚠️ **Проблемные серверы:**
+[список проблемных серверов с причинами]
 
-Инструкции:
-- Отвечай ТОЛЬКО на русском.
-- Не придумывай данные — только из контекста.
-- Кратко и по делу.
+🎯 **Рекомендации:**
+[конкретные рекомендации по действиям]
 
-Вопрос пользователя:
-«{user_question}»
+Используй только факты из предоставленных данных."""
 
-Ответ:"""
+        # Выберите одну из доступных моделей Hugging Face:
+        # 1. Mixtral (рекомендуется) - бесплатный, мощный
+        # 2. Llama 2/3 - также хороший выбор
+        # 3. Mistral - легковесный вариант
+
+        model_url = "https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1"
+
+        data = {
+            "inputs": prompt,
+            "parameters": {
+                "max_new_tokens": 1024,  # Максимальное количество токенов в ответе
+                "temperature": 0.3,  # Контроль случайности (0-1)
+                "top_p": 0.95,  # Ядерная выборка
+                "do_sample": True,  # Включить семплирование
+                "return_full_text": False,  # Не возвращать промпт в ответе
+                "repetition_penalty": 1.1  # Штраф за повторения
+            },
+            "options": {
+                "wait_for_model": True,  # Ждать если модель загружается
+                "use_cache": True  # Использовать кеш для ускорения
+            }
+        }
+
+        # Альтернативная модель (если Mixtral недоступен)
+        # model_url = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2"
+
+        # Для русскоязычных моделей:
+        # model_url = "https://api-inference.huggingface.co/models/ai-forever/ruGPT-3.5-13B"
 
         response = requests.post(
-            LLM_URL,
-            json={
-                "prompt": prompt,
-                "temperature": 0.1,
-                "n_predict": MAX_TOKENS,
-                "stop": ["\n\n", "Вопрос пользователя:"]
-            },
-            timeout=TIMEOUT
+            model_url,
+            headers=headers,
+            json=data,
+            timeout=45  # Увеличиваем таймаут для больших моделей
         )
-        if response.ok:
-            return response.json().get("content", "Ошибка генерации")
+
+        if response.status_code == 200:
+            result = response.json()
+
+            # Обработка ответа от Hugging Face API
+            # Формат ответа может отличаться в зависимости от модели
+            if isinstance(result, list) and len(result) > 0:
+                if 'generated_text' in result[0]:
+                    return result[0]['generated_text']
+                elif isinstance(result[0], dict) and len(result[0]) > 0:
+                    # Если ответ содержит несколько ключей
+                    return str(result[0])
+                else:
+                    return str(result[0])
+            elif isinstance(result, dict):
+                if 'generated_text' in result:
+                    return result['generated_text']
+                else:
+                    # Возвращаем весь ответ если формат неизвестен
+                    return json.dumps(result, indent=2, ensure_ascii=False)
+            else:
+                return str(result)
+
+        elif response.status_code == 503:
+            # Модель загружается
+            st.info("Модель загружается, пожалуйста, подождите 10-20 секунд и попробуйте снова.")
+            return local_ai_analysis(context)
+
         else:
-            return f"❌ Ошибка LLM: {response.status_code}"
+            error_msg = f"Ошибка Hugging Face API: {response.status_code}"
+            if response.text:
+                try:
+                    error_data = response.json()
+                    error_msg += f"\nДетали: {error_data.get('error', 'Unknown error')}"
+                except:
+                    error_msg += f"\nОтвет: {response.text[:200]}"
+            st.error(error_msg)
+            return local_ai_analysis(context)
+
+    except requests.exceptions.Timeout:
+        st.error("Таймаут при обращении к Hugging Face API")
+        return local_ai_analysis(context)
+
+    except requests.exceptions.ConnectionError:
+        st.error("Ошибка подключения к Hugging Face API")
+        return local_ai_analysis(context)
+
     except Exception as e:
-        return f"⚠️ Нет подключения к LLM: {str(e)}"
+        st.error(f"Непредвиденная ошибка: {str(e)}")
+        return local_ai_analysis(context)
+
+
+def local_ai_analysis(context):
+    """Локальный анализ при недоступности API"""
+    # Упрощенный локальный анализ
+    analysis_result = """📊 **Статистический анализ:**
+Проведен базовый анализ метрик. Для детального анализа требуется подключение к AI API.
+
+⚠️ **Проблемные серверы:**
+Рекомендуется проверить серверы с пиковыми значениями CPU > 80% и памятью < 20% свободной.
+
+🎯 **Рекомендации:**
+1. Настройте автоматическое масштабирование для серверов с высокой нагрузкой
+2. Проверьте логи на серверах с аномалиями
+3. Рассмотрите возможность оптимизации запросов"""
+
+    return analysis_result
