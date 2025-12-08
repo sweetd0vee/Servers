@@ -5,7 +5,7 @@ RUN mkdir /work/data
 
 COPY ./requirements.txt /work
 COPY ./app/*.py /work
-COPY ./data/* /work/data
+#COPY ./data/* /work/data
 
 WORKDIR /work
 
