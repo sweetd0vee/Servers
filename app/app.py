@@ -4,12 +4,17 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
-from datetime import datetime, timedelta
+from datetime import datetime
+
+# Methods:
+# create_cpu_heatmap, create_memory_heatmap
+# create_cpu_load_chart, create_mem_load_chart
+
 
 # Настройка страницы
 st.set_page_config(
     page_title="Дашборд мониторинга серверов",
-    page_icon="📊",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -135,71 +140,91 @@ def create_summary_metrics(df):
     }
 
 
-def create_cpu_load_heatmap(df):
-    """Создание тепловой карты CPU нагрузки"""
-    cpu_data = df[df['metric'] == 'cpu.usage.average']
+def create_cpu_heatmap(df):
+    """Тепловая карта использования cpu по дням"""
+    usage_data = df[df['metric'] == 'cpu.usage.average']
 
-    # Создаем pivot таблицу для тепловой карты
-    pivot_data = cpu_data.pivot_table(
+    pivot_data = usage_data.pivot_table(
         values='avg_value',
         index='vm',
         columns='date',
         aggfunc='mean'
     )
 
-    # Сортируем по средней нагрузке
-    pivot_data['average'] = pivot_data.mean(axis=1)
-    pivot_data = pivot_data.sort_values('average', ascending=False)
-    pivot_data = pivot_data.drop('average', axis=1)
+    # Сортируем по максимальному использованию
+    pivot_data['max_usage'] = pivot_data.max(axis=1)
+    pivot_data = pivot_data.sort_values('max_usage', ascending=False)
+    pivot_data = pivot_data.drop('max_usage', axis=1)
 
     fig = px.imshow(
         pivot_data,
-        labels=dict(x="Дата", y="Сервер", color="CPU %"),
-        title="Тепловая карта нагрузки CPU по дням",
-        color_continuous_scale="RdYlGn_r",  # Красный для высокой нагрузки
-        aspect="auto"
+        labels=dict(x="Дата", y="Сервер", color="Использование cpu (%)"),
+        title="Тепловая карта использования cpu",
+        color_continuous_scale=[
+            [0, "#2E8B57"],  # Low - green
+            [0.3, "#90EE90"],  # Medium low - light green
+            [0.7, "#FFD700"],  # Medium - yellow
+            [0.8, "#FF8C00"],  # High - orange
+            [1.0, "#FF4500"]  # Critical - red
+        ],
+        aspect="auto",
+        text_auto='.0f'
     )
 
     fig.update_layout(
-        height=600,
+        height=700,
         xaxis_title="Дата",
         yaxis_title="Сервер",
-        coloraxis_colorbar=dict(title="CPU %")
+        coloraxis_colorbar=dict(
+            title="%",
+            thickness=20,
+            len=0.8
+        )
     )
 
     return fig
 
 
-def create_mem_load_heatmap(df):
-    """Создание тепловой карты CPU нагрузки"""
-    mem_data = df[df['metric'] == 'mem.usage.average']
+def create_memory_heatmap(df):
+    """Тепловая карта использования памяти по дням"""
+    usage_data = df[df['metric'] == 'mem.usage.average']
 
-    # Создаем pivot таблицу для тепловой карты
-    pivot_data = mem_data.pivot_table(
+    pivot_data = usage_data.pivot_table(
         values='avg_value',
         index='vm',
         columns='date',
         aggfunc='mean'
     )
 
-    # Сортируем по средней нагрузке
-    pivot_data['average'] = pivot_data.mean(axis=1)
-    pivot_data = pivot_data.sort_values('average', ascending=False)
-    pivot_data = pivot_data.drop('average', axis=1)
+    # Сортируем по максимальному использованию
+    pivot_data['max_usage'] = pivot_data.max(axis=1)
+    pivot_data = pivot_data.sort_values('max_usage', ascending=False)
+    pivot_data = pivot_data.drop('max_usage', axis=1)
 
     fig = px.imshow(
         pivot_data,
-        labels=dict(x="Дата", y="Сервер", color="CPU %"),
-        title="Тепловая карта нагрузки mem по дням",
-        color_continuous_scale="RdYlGn_r",  # Красный для высокой нагрузки
-        aspect="auto"
+        labels=dict(x="Дата", y="Сервер", color="Использование памяти (%)"),
+        title="Тепловая карта использования памяти",
+        color_continuous_scale=[
+            [0, "#2E8B57"],  # Low - green
+            [0.3, "#90EE90"],  # Medium low - light green
+            [0.7, "#FFD700"],  # Medium - yellow
+            [0.8, "#FF8C00"],  # High - orange
+            [1.0, "#FF4500"]  # Critical - red
+        ],
+        aspect="auto",
+        text_auto='.0f'
     )
 
     fig.update_layout(
-        height=600,
+        height=700,
         xaxis_title="Дата",
         yaxis_title="Сервер",
-        coloraxis_colorbar=dict(title="CPU %")
+        coloraxis_colorbar=dict(
+            title="%",
+            thickness=20,
+            len=0.8
+        )
     )
 
     return fig
@@ -390,7 +415,7 @@ def create_server_classification_table(df):
 
 def main():
     # Заголовок
-    st.markdown("<h1 class='main-header'>📊 Дашборд мониторинга нагрузки серверов</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 class='main-header'>Дашборд мониторинга нагрузки серверов</h1>", unsafe_allow_html=True)
 
     # Загрузка данных
     with st.spinner('Загрузка и анализ данных...'):
@@ -399,7 +424,7 @@ def main():
 
     # Боковая панель
     with st.sidebar:
-        st.header("🔧 Фильтры и настройки")
+        st.header("Фильтры и настройки")
 
         # Выбор сервера для детального анализа
         servers = sorted(df['vm'].unique())
@@ -409,24 +434,12 @@ def main():
             index=0
         )
 
-        # Выбор метрик для отображения
-        st.subheader("📈 Отображаемые метрики")
-        show_cpu = st.checkbox("CPU нагрузка", value=True)
-        show_memory = st.checkbox("Использование памяти", value=True)
-        show_disk = st.checkbox("Использование диска", value=True)
-        show_network = st.checkbox("Сетевая активность", value=False)
-
-        # Пороговые значения
-        st.subheader("⚙️ Настройка порогов")
-        cpu_threshold = st.slider("Порог высокой CPU нагрузки (%)", 50, 90, 70)
-        mem_threshold = st.slider("Порог высокой Memory нагрузки (%)", 60, 95, 80)
-
     # Основной контент
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card", style="color: black;">
             <h3>Всего серверов</h3>
             <h1>{metrics['total_servers']}</h1>
             <p>Период: {metrics['period']}</p>
@@ -435,7 +448,7 @@ def main():
 
     with col2:
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card", style="color: black;">
             <h3>Нагрузка CPU</h3>
             <p>🟢 Низкая: {metrics['cpu_low']} серверов</p>
             <p>🟡 Нормальная: {metrics['cpu_normal']} серверов</p>
@@ -445,7 +458,7 @@ def main():
 
     with col3:
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card", style="color: black;">
             <h3>Нагрузка памяти</h3>
             <p>🟢 Низкая: {metrics['mem_low']} серверов</p>
             <p>🟡 Нормальная: {metrics['mem_normal']} серверов</p>
@@ -455,21 +468,31 @@ def main():
 
     # Визуализации
     st.markdown("---")
-    st.header("📊 Визуализация нагрузки")
+    st.header("Визуализация нагрузки")
 
-    if show_cpu:
-        st.subheader("Тепловая карта нагрузки памяти")
-        fig_heatmap = create_mem_load_heatmap(df)
-        st.plotly_chart(fig_heatmap, use_container_width=True)
 
-    if show_memory:
-        st.subheader("Использование CPU")
-        fig_memory = create_cpu_load_chart(df)
-        st.plotly_chart(fig_memory, use_container_width=True)
+    st.subheader("Тепловая карта нагрузки CPU")
+    fig_heatmap = create_cpu_heatmap(df)
+    st.plotly_chart(fig_heatmap, use_container_width=True)
+
+
+    st.subheader("Использование CPU")
+    fig_chart = create_cpu_load_chart(df)
+    st.plotly_chart(fig_chart, use_container_width=True)
+
+
+    st.subheader("Тепловая карта нагрузки по памяти")
+    fig_heatmap = create_memory_heatmap(df)
+    st.plotly_chart(fig_heatmap, use_container_width=True)
+
+
+    st.subheader("Использование памяти")
+    fig_chart = create_memory_load_chart(df)
+    st.plotly_chart(fig_chart, use_container_width=True)
 
     # Детальный анализ выбранного сервера
     st.markdown("---")
-    st.header(f"🔍 Детальный анализ: {selected_server}")
+    st.header(f"Детальный анализ: {selected_server}")
 
     col4, col5 = st.columns(2)
 
@@ -485,7 +508,7 @@ def main():
         mem_status = "🟢 Низкая" if avg_mem < 30 else ("🔴 Высокая" if avg_mem > 80 else "🟡 Нормальная")
 
         st.markdown(f"""
-        <div class="metric-card">
+        <div class="metric-card", style="color: black;">
             <h3>Средние значения</h3>
             <p><strong>CPU:</strong> {avg_cpu:.2f}% - {cpu_status}</p>
             <p><strong>Память:</strong> {avg_mem:.2f}% - {mem_status}</p>
@@ -505,7 +528,7 @@ def main():
             card_class = "success-card"
 
         st.markdown(f"""
-        <div class="{card_class}">
+        <div class="{card_class}", style="color: black;">
             <h3>Рекомендация</h3>
             <p>{recommendation}</p>
         </div>
@@ -518,7 +541,7 @@ def main():
 
     # Таблица классификации всех серверов
     st.markdown("---")
-    st.header("📋 Классификация всех серверов")
+    st.header("Классификация всех серверов")
 
     classification_table = create_server_classification_table(df)
     st.dataframe(
@@ -526,62 +549,6 @@ def main():
         use_container_width=True,
         hide_index=True
     )
-
-    # Предупреждения о проблемах
-    st.markdown("---")
-    st.header("⚠️ Серверы требующие внимания")
-
-    # Находим серверы с проблемами
-    cpu_problems = classification_table[classification_table['CPU Категория'].str.contains('🔴')]
-    mem_problems = classification_table[classification_table['Memory Категория'].str.contains('🔴')]
-
-    if not cpu_problems.empty:
-        st.error("**Серверы с высокой CPU нагрузкой:**")
-        for _, row in cpu_problems.iterrows():
-            st.write(f"- {row['Сервер']}: {row['Средний CPU %']}% CPU")
-
-    if not mem_problems.empty:
-        st.error("**Серверы с высокой Memory нагрузкой:**")
-        for _, row in mem_problems.iterrows():
-            st.write(f"- {row['Сервер']}: {row['Средняя Memory %']}% Memory")
-
-    if cpu_problems.empty and mem_problems.empty:
-        st.success("✅ Все серверы работают в пределах нормальной нагрузки")
-
-    # Скачивание отчета
-    st.markdown("---")
-    st.header("📥 Экспорт данных")
-
-    col6, col7 = st.columns(2)
-
-    with col6:
-        # Экспорт классификации
-        csv = classification_table.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Скачать классификацию (CSV)",
-            data=csv,
-            file_name="server_classification.csv",
-            mime="text/csv"
-        )
-
-    with col7:
-        # Сводный отчет
-        summary_data = {
-            'Дата_анализа': [datetime.now().strftime('%Y-%m-%d %H:%M:%S')],
-            'Всего_серверов': [metrics['total_servers']],
-            'Период_анализа': [metrics['period']],
-            'Серверов_с_высокой_CPU': [metrics['cpu_high']],
-            'Серверов_с_высокой_Memory': [metrics['mem_high']]
-        }
-        summary_df = pd.DataFrame(summary_data)
-        csv_summary = summary_df.to_csv(index=False).encode('utf-8')
-
-        st.download_button(
-            label="📥 Скачать сводный отчет (CSV)",
-            data=csv_summary,
-            file_name="server_monitoring_summary.csv",
-            mime="text/csv"
-        )
 
 
 if __name__ == "__main__":
