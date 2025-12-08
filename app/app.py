@@ -442,7 +442,7 @@ def main():
         <div class="metric-card", style="color: black;">
             <h3>Всего серверов</h3>
             <h1>{metrics['total_servers']}</h1>
-            <p>Период: {metrics['period']}</p>
+            <p>**Период: {metrics['period']}**</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -465,6 +465,17 @@ def main():
             <p>🔴 Высокая: {metrics['mem_high']} серверов</p>
         </div>
         """, unsafe_allow_html=True)
+
+    # Таблица классификации всех серверов
+    st.markdown("---")
+    st.header("Классификация всех серверов")
+
+    classification_table = create_server_classification_table(df)
+    st.dataframe(
+        classification_table,
+        use_container_width=True,
+        hide_index=True
+    )
 
     # Визуализации
     st.markdown("---")
@@ -538,17 +549,6 @@ def main():
     st.subheader("Динамика нагрузки во времени")
     fig_timeline = create_load_timeline(df, selected_server)
     st.plotly_chart(fig_timeline, use_container_width=True)
-
-    # Таблица классификации всех серверов
-    st.markdown("---")
-    st.header("Классификация всех серверов")
-
-    classification_table = create_server_classification_table(df)
-    st.dataframe(
-        classification_table,
-        use_container_width=True,
-        hide_index=True
-    )
 
 
 if __name__ == "__main__":
