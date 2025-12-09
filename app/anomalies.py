@@ -1,5 +1,5 @@
 import streamlit as st
-from llm import call_ai_analysis, local_ai_analysis
+from llm import call_ai_analysis
 
 def detect_statistical_anomalies(df, server_name=None):
     """
