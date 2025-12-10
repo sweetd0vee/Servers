@@ -14,7 +14,7 @@ TIMEOUT = 90
 def call_ai_analysis(context):
     """Улучшенная версия с несколькими попытками"""
 
-    api_key = "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"
+    api_key = "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"
 
     # Список моделей для попыток (от самых легких к более тяжелым)
     models_to_try = [

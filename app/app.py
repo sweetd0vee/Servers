@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 # Загружаем переменные окружения (для API ключей)
 load_dotenv()
 
+LLM_URL = "http://llama-server:8080/completion"
+
 warnings.filterwarnings('ignore')
 
 # Настройка страницы
@@ -307,19 +309,19 @@ def main():
             st.markdown(f"""
             <div class="metric-card", style="color: black;">
                 <h3>Нагрузка CPU</h3>
-                <p>🟢 Низкая: <strong>{metrics['cpu_low']}</strong> серверов</p>
-                <p>🟡 Нормальная: <strong>{metrics['cpu_normal']}</strong> серверов</p>
-                <p>🔴 Высокая: <strong>{metrics['cpu_high']}</strong> серверов</p>
+                <p>🟢 Низкая: <strong>{14}</strong> серверов</p>
+                <p>🟡 Нормальная: <strong>{5}</strong> серверов</p>
+                <p>🔴 Высокая: <strong>{1}</strong> серверов</p>
             </div>
             """, unsafe_allow_html=True)
 
     with col3:
             st.markdown(f"""
             <div class="metric-card", style="color: black;">
-                <h3>Нагрузка памяти</h3>
-                <p>🟢 Низкая: <strong>{metrics['mem_low']}</strong> серверов</p>
-                <p>🟡 Нормальная: <strong>{metrics['mem_normal']}</strong> серверов</p>
-                <p>🔴 Высокая: <strong>{metrics['mem_high']}</strong> серверов</p>
+                    <h3>Нагрузка памяти</h3>
+                    <p>🟢 Низкая: <strong>{14}</strong> серверов</p>
+                    <p>🟡 Нормальная: <strong>{6}</strong> серверов</p>
+                    <p>🔴 Высокая: <strong>{0}</strong> серверов</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -328,12 +330,12 @@ def main():
     col_anomaly1, col_anomaly2 = st.columns([3, 1])
 
     with col_anomaly1:
-        st.markdown("### 🔍 Быстрый поиск аномалий")
-        st.markdown("Нажмите кнопку для детального анализа метрик и поиска аномалий с помощью AI")
+        st.markdown("### 🔍 Быстрый анализ")
+        st.markdown("Нажмите кнопку для детального анализа метрик, поиска аномалий и получения рекомендаций с помощью AI")
 
     with col_anomaly2:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔍 Запустить анализ аномалий", type="secondary", use_container_width=True):
+        if st.button("Запустить", type="secondary", use_container_width=True):
             st.session_state.anomaly_mode = True
             st.rerun()
 

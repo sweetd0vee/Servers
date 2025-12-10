@@ -1,5 +1,7 @@
 import streamlit as st
 from llm import call_ai_analysis
+import requests
+
 
 def detect_statistical_anomalies(df, server_name=None):
     """
@@ -108,15 +110,13 @@ def create_anomaly_detection_section(df):
     """
     Создание секции для обнаружения аномалий
     """
-    st.markdown('<div class="section-header">🔍 Поиск аномалий</div>', unsafe_allow_html=True)
-
     col1, col2 = st.columns([3, 1])
 
     with col1:
         # Выбор сервера для анализа
         servers = sorted(df['vm'].unique())
         selected_server = st.selectbox(
-            "Выберите сервер для детального анализа аномалий:",
+            "Выберите сервер для детального анализа:",
             servers,
             index=0 if not st.session_state.anomaly_server else servers.index(st.session_state.anomaly_server)
         )
@@ -124,15 +124,15 @@ def create_anomaly_detection_section(df):
         # Текстовое поле для вопроса
         question = st.text_input(
             "Задайте вопрос по метрикам:",
-            value=f"Есть ли аномалии у {selected_server}?" if not st.session_state.anomaly_server
+            value=f"Проанализируй сервер {selected_server}?" if not st.session_state.anomaly_server
             else f"Есть ли аномалии у {st.session_state.anomaly_server}?",
-            placeholder=f"Например: «Есть ли аномалии у {selected_server}?»"
+            placeholder=f"Например: «Проанализируй сервер {selected_server}?»"
         )
 
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
         # Кнопка поиска аномалий
-        if st.button("Найти аномалии", type="secondary", use_container_width=True):
+        if st.button("Запустить", type="secondary", use_container_width=True):
             st.session_state.anomaly_mode = True
             st.session_state.anomaly_server = selected_server
             st.session_state.anomaly_response = None
@@ -141,9 +141,9 @@ def create_anomaly_detection_section(df):
     # Если режим анализа аномалий активен
     if st.session_state.anomaly_mode and st.session_state.anomaly_server:
         st.markdown("---")
-        st.subheader(f"Анализ аномалий для сервера: {st.session_state.anomaly_server}")
+        st.subheader(f"Анализ для сервера: {st.session_state.anomaly_server}")
 
-        with st.spinner("Анализируем метрики и ищем аномалии..."):
+        with st.spinner("Анализируем метрики..."):
             # Получаем контекст для анализа
             context = get_server_context(df, st.session_state.anomaly_server)
 
@@ -179,8 +179,38 @@ def create_anomaly_detection_section(df):
             st.markdown('</div>', unsafe_allow_html=True)
 
         # Кнопка для возврата
-        if st.button("← Вернуться к дашборду", type="primary"):
-            st.session_state.anomaly_mode = False
-            st.session_state.anomaly_server = None
-            st.session_state.anomaly_response = None
-            st.rerun()
+        col_back, col_link = st.columns([1, 1])
+        with col_back:
+            if st.button("← Вернуться к дашборду", type="primary", use_container_width=True):
+                st.session_state.anomaly_mode = False
+                st.session_state.anomaly_server = None
+                st.session_state.anomaly_response = None
+                st.rerun()
+
+        with col_link:
+            # Проверяем доступность контейнера Llama
+            LLAMA_UI_URL = "http://llama-server:8080/completion"
+
+            try:
+                response = requests.get(f"{LLAMA_UI_URL}/health", timeout=2)
+                is_available = response.status_code == 200
+            except requests.exceptions.RequestException:
+                try:
+                    # Пробуем другой эндпоинт
+                    response = requests.get(f"{LLAMA_UI_URL}", timeout=2)
+                    is_available = response.status_code == 200
+                except:
+                    is_available = False
+
+            if is_available:
+                st.link_button(
+                    "🚀 Перейти в LLM UI",
+                    LLAMA_UI_URL,
+                    type="secondary",
+                    use_container_width=True,
+                    help="Откроет интерфейс LLM в новой вкладке"
+                )
+            else:
+                st.warning("⚠️ LLM UI недоступен")
+                if st.button("🔄 Проверить снова", disabled=False, use_container_width=True):
+                    st.rerun()

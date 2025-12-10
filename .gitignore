@@ -31,4 +31,5 @@ venv/
 .vscode/ # VS Code
 .DS_Store # macOS
 ../data/.DS_Store
+ ../notebooks/.DS_Store
 Thumbs.db # Windows
