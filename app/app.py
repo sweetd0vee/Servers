@@ -5,7 +5,7 @@ import json
 import requests
 from cpu import create_cpu_heatmap, create_cpu_load_chart
 from mem import create_memory_heatmap, create_memory_load_chart
-from server_dashboard import create_load_timeline, create_server_classification_table
+from table import create_load_timeline, create_server_classification_table
 from anomalies import create_anomaly_detection_section, detect_statistical_anomalies
 import os
 from dotenv import load_dotenv
