@@ -111,11 +111,14 @@ if 'anomaly_response' not in st.session_state:
 
 
 @st.cache_data
-def load_and_prepare_data():
+def load_and_prepare_data(data_source='xlsx'):
     """Загрузка и подготовка данных"""
     try:
-        # Чтение данных из файла
-        df = pd.read_excel("data/metrics.xlsx")
+        if data_source == 'xlsx':
+            # Чтение данных из файла
+            df = pd.read_excel("data/metrics.xlsx")
+        # elif data_source == 'db':
+        #     df = get_data_from_db()
 
         # Проверка необходимых колонок
         required_columns = ['date', 'vm', 'metric', 'avg_value']
