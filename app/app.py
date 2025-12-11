@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 # Загружаем переменные окружения (для API ключей)
 load_dotenv()
 
-LLM_URL = "http://llama-server:8080/completion"
 
 warnings.filterwarnings('ignore')
 
@@ -86,6 +85,8 @@ st.markdown("""
         background-color: #2a2b34;
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
     }
     .ai-response {
         background-color: #f8f9fa;

@@ -1,7 +1,13 @@
+
+
 import streamlit as st
 from llm import call_ai_analysis
 import requests
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def detect_statistical_anomalies(df, server_name=None):
     """
@@ -189,16 +195,19 @@ def create_anomaly_detection_section(df):
 
         with col_link:
             # Проверяем доступность контейнера Llama
-            LLAMA_UI_URL = "http://llama-server:8080/completion"
+            LLAMA_UI_URL = "http://localhost:8080"
 
             try:
                 response = requests.get(f"{LLAMA_UI_URL}/health", timeout=2)
-                is_available = response.status_code == 200
+                is_available = response.status_code == requests.codes.ok
+                print(is_available, response.status_code)
+                logger.info(is_available, response.status_code)
+
             except requests.exceptions.RequestException:
                 try:
                     # Пробуем другой эндпоинт
                     response = requests.get(f"{LLAMA_UI_URL}", timeout=2)
-                    is_available = response.status_code == 200
+                    is_available = response.status_code == requests.codes.ok
                 except:
                     is_available = False
 
@@ -211,6 +220,6 @@ def create_anomaly_detection_section(df):
                     help="Откроет интерфейс LLM в новой вкладке"
                 )
             else:
-                st.warning("⚠️ LLM UI недоступен")
-                if st.button("🔄 Проверить снова", disabled=False, use_container_width=True):
+                st.warning("⚠️LLM UI недоступен")
+                if st.button("🔄Проверить снова", disabled=False, use_container_width=True):
                     st.rerun()

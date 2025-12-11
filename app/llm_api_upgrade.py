@@ -90,7 +90,7 @@ class ServerMetricsAnalyzer:
                 max_length=200
             )
             self.use_simple = True
-            print("✅ Загружена fallback модель: distilgpt2")
+            print("✅ Загружена fallback модель: Qwen/Qwen2.5-3B-Instruct")
         except:
             print("❌ Не удалось загрузить модель")
             self.model = None
@@ -160,8 +160,8 @@ class ServerMetricsAnalyzer:
                 with torch.no_grad():
                     outputs = self.model.generate(
                         **inputs,
-                        max_new_tokens=200,
-                        temperature=0.3,
+                        max_new_tokens=500,
+                        temperature=0.7,
                         do_sample=True,
                         top_p=0.9,
                         pad_token_id=self.tokenizer.eos_token_id,
