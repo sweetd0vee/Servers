@@ -194,7 +194,7 @@ def create_anomaly_detection_section(df):
         with col_link:
             # Проверяем доступность контейнера Llama
             LLAMA_UI_URL_HEALTH = "http://llama-server:8080"
-            LLAMA_UI_URL = "http://localhost:8080"
+            LLAMA_UI_URL = "http://localhost"
 
             # Функция для проверки доступности (выполняется на сервере)
             @st.cache_data(ttl=30)  # Кэшируем результат на 30 секунд
