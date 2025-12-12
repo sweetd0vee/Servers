@@ -1,5 +1,4 @@
 -- Создание таблицы servers
-
 CREATE TABLE IF NOT EXISTS servers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     vm VARCHAR(255) NOT NULL,
@@ -29,7 +28,7 @@ CREATE INDEX IF NOT EXISTS idx_servers_vm_metric ON servers(vm, metric);
 -- Комментарии к таблице и колонкам
 COMMENT ON TABLE servers IS 'Метрики производительности серверов';
 COMMENT ON COLUMN servers.id IS 'Уникальный идентификатор записи';
-COMMENT ON COLUMN servers.vm IS 'Имя виртуальной машины';
+COMMENT ON COLUMN servers.vm IS 'Имя виртуального сервера';
 COMMENT ON COLUMN servers.date IS 'Дата и время сбора метрики';
 COMMENT ON COLUMN servers.metric IS 'Название метрики (например: cpu.usage.average)';
 COMMENT ON COLUMN servers.max_value IS 'Максимальное значение метрики за период';
