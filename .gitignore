@@ -33,3 +33,6 @@ venv/
 ../data/.DS_Store
  ../notebooks/.DS_Store
 Thumbs.db # Windows
+docker/.DS_Store
+.DS_Store
+
