@@ -1,4 +1,3 @@
-# auth.py
 import streamlit as st
 import hashlib
 import jwt

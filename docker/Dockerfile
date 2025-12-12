@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir --timeout 1000 --retries 5 -r requirements.txt
 COPY ./app/*.py /work
 #COPY ./data/* /work/data
 
-CMD ["streamlit", "run", "app.py"]
+CMD ["streamlit", "run", "app_new.py"]
