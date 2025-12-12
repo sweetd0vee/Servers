@@ -1,6 +1,6 @@
-### Дашборд нагрузки серверов
+# Дашборд нагрузки серверов
 
-## AIOps-project
+### AIOps project
 
 **Запуск в Docker:**
 
@@ -19,3 +19,24 @@
 
 **Анализ Memory нагрузки:**
 ```lambda x: 'Низкая' if x < 30 else ('Высокая' if x > 80 else 'Нормальная')```
+
+
+### Purpose
+AIOps dashboard for monitoring server metrics (CPU, Memory, Disk, Network) with:
+- Real-time visualization (heatmaps, charts, timelines)
+- Statistical anomaly detection
+- AI-powered analysis using LLM (Qwen2.5-3B-Instruct)
+- Role-based access control (Admin, User, Viewer)
+- Docker containerization
+
+
+### Technology Stack
+- **Frontend:** Streamlit
+- **Backend:** Python 3.12
+- **Database:** PostgreSQL (SQLAlchemy ORM)
+- **Visualization:** Plotly
+- **AI/ML:** Transformers (Hugging Face), llama.cpp
+- **Containerization:** Docker Compose
+- **Web Server:** Apache HTTPD (reverse proxy)
+
+
