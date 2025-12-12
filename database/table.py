@@ -14,16 +14,9 @@ class Servers(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
     vm = Column(String, nullable=False)
-
-    # Date column with proper data type
-    date = Column(String) # DateTime(timezone=True)
-    # OR if you want it to auto-set on creation:
-    # date = Column(DateTime(timezone=True), server_default=func.now())
-
+    date = Column(DateTime(timezone=True)) # String
     metric = Column(String)
-    max_value = Column(DECIMAL(10, 2))
-    min_value = Column(DECIMAL(10, 2))
-    avg_value = Column(DECIMAL(10, 2))
-
+    max_value = Column(DECIMAL(10, 5))
+    min_value = Column(DECIMAL(10, 5))
+    avg_value = Column(DECIMAL(10, 5))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    # UNIQUE(vm, date, metric)
