@@ -1,15 +1,13 @@
 import pandas as pd
 import streamlit as st
 import warnings
-import json
-import requests
 from cpu import create_cpu_heatmap, create_cpu_load_chart
 from mem import create_memory_heatmap, create_memory_load_chart
 from table import create_load_timeline, create_server_classification_table
 from anomalies import create_anomaly_detection_section, detect_statistical_anomalies
 import os
 from dotenv import load_dotenv
-from auth import require_auth, logout, get_current_user, has_role
+from auth import require_auth, get_current_user, has_role
 
 # Загружаем переменные окружения (для API ключей)
 load_dotenv()

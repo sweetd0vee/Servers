@@ -1,10 +1,5 @@
-import pandas as pd
 import streamlit as st
-import warnings
-import json
 import requests
-import os
-from dotenv import load_dotenv
 
 LLM_URL = "http://llama-server:8080/completion"
 MAX_TOKENS = 400
