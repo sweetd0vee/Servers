@@ -9,6 +9,7 @@ from table import create_load_timeline, create_server_classification_table
 from anomalies import create_anomaly_detection_section, detect_statistical_anomalies
 import os
 from dotenv import load_dotenv
+from base_logger import logger
 
 # Загружаем переменные окружения (для API ключей)
 load_dotenv()

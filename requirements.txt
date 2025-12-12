@@ -17,3 +17,4 @@ psycopg2-binary==2.9.5
 alembic==1.9.2
 PyJWT==2.10.1
 cryptography==41.0.7
+matplotlib==3.9.4
