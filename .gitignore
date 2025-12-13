@@ -36,3 +36,4 @@ Thumbs.db # Windows
 docker/.DS_Store
 .DS_Store
 
+/logs

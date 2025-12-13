@@ -4,7 +4,7 @@ from pathlib import Path
 from datetime import datetime
 
 # Создаем директорию для логов если ее нет
-log_dir = Path("logs")
+log_dir = Path("../logs")
 log_dir.mkdir(exist_ok=True)
 
 # Формат даты для имени файла

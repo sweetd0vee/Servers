@@ -61,7 +61,7 @@ def load_and_prepare_data(data_source='xlsx'):
     try:
         if data_source == 'xlsx':
             # Чтение данных из файла
-            df = pd.read_excel("data/metrics.xlsx")
+            df = pd.read_excel("../data/metrics.xlsx")
         # elif data_source == 'db':
         #     df = get_data_from_db()
 
