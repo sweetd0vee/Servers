@@ -8,6 +8,7 @@ from anomalies import create_anomaly_detection_section, detect_statistical_anoma
 import os
 from dotenv import load_dotenv
 from auth import require_auth, get_current_user, has_role
+from base_logger import logger
 
 # Загружаем переменные окружения (для API ключей)
 load_dotenv()
@@ -22,26 +23,89 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Загрузка CSS из файла
-def load_css():
-    css_path = "assets/styles.css"
-    if os.path.exists(css_path):
-        with open(css_path, "r", encoding="utf-8") as f:
-            css = f.read()
-        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-    else:
-        # Fallback к hardcoded CSS
-        st.markdown("""
-        <style>
-            /* Минимальный CSS на случай отсутствия файла */
-            .main-header {
-                font-size: 2.5rem;
-                color: #1E3A8A;
-                text-align: center;
-                padding: 20px 0;
-            }
-        </style>
-        """, unsafe_allow_html=True)
+# CSS для улучшения отображения (добавляем стили для авторизации)
+st.markdown("""
+<style>
+    .main-header {
+        font-size: 2.5rem;
+        color: #1E3A8A;
+        text-align: center;
+        padding: 20px 0;
+    }
+    .metric-card {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    .warning-card {
+        background-color: #fff3cd;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    .success-card {
+        background-color: #d4edda;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+    }
+    .anomaly-card {
+        background-color: #f8d7da;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 10px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        height: 100%;
+    }
+    .stDataFrame {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .stPlotlyChart {
+        padding: 10px;
+    }
+    .stButton button {
+        background-color: #1a1c24;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 8px;
+        font-weight: bold;
+        transition: all 0.3s;
+        width: 100%;
+    }
+    .stButton button:hover {
+        background-color: #2a2b34;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
+    }
+    .ai-response {
+        background-color: #f8f9fa;
+        border-left: 4px solid #17a2b8;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        white-space: pre-wrap;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+    }
+    .user-info {
+        background-color: #e8f4fd;
+        padding: 10px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border-left: 4px solid #007bff;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Инициализация состояния сессии для аутентификации
 if 'authenticated' not in st.session_state:
@@ -62,15 +126,50 @@ if 'anomaly_response' not in st.session_state:
     st.session_state.anomaly_response = None
 
 
-@st.cache_data
-def load_and_prepare_data(data_source='xlsx'):
-    """Загрузка и подготовка данных"""
+@st.cache_data(ttl=300)  # Кэш на 5 минут
+def load_and_prepare_data(data_source='db', vm=None, start_date=None, end_date=None):
+    """
+    Загрузка и подготовка данных
+
+    Args:
+        data_source: Источник данных ('db' или 'xlsx')
+        vm: Фильтр по серверу (опционально)
+        start_date: Начальная дата (опционально)
+        end_date: Конечная дата (опционально)
+    """
     try:
-        if data_source == 'xlsx':
-            # Чтение данных из файла
-            df = pd.read_excel("../data/metrics.xlsx")
-        # elif data_source == 'db':
-        #     df = get_data_from_db()
+        if data_source == 'db':
+            # Чтение данных из базы данных
+            from database.repository import get_metrics_from_db
+            from datetime import date as date_type
+
+            # Преобразуем даты если нужно
+            if start_date and isinstance(start_date, str):
+                start_date = pd.to_datetime(start_date).date()
+            if end_date and isinstance(end_date, str):
+                end_date = pd.to_datetime(end_date).date()
+
+            df = get_metrics_from_db(
+                vm=vm,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            if df.empty:
+                st.warning("⚠️ База данных пуста. Используйте импорт данных из Excel.")
+                # Пробуем загрузить из Excel как fallback
+                try:
+                    df = pd.read_excel("../data/metrics.xlsx")
+                    st.info("📊 Загружены данные из Excel файла (fallback)")
+                except:
+                    return pd.DataFrame()
+
+        elif data_source == 'xlsx':
+            # Чтение данных из файла (legacy)
+            df = pd.read_excel("data/metrics.xlsx")
+        else:
+            st.error(f"Неизвестный источник данных: {data_source}")
+            return pd.DataFrame()
 
         # Проверка необходимых колонок
         required_columns = ['date', 'vm', 'metric', 'avg_value']
@@ -141,7 +240,15 @@ def load_and_prepare_data(data_source='xlsx'):
         st.error("Файл data/metrics.xlsx не найден. Пожалуйста, проверьте путь к файлу.")
         return pd.DataFrame()
     except Exception as e:
-        st.error(f"Ошибка при загрузке данных: {str(e)}")
+        error_msg = str(e)
+        st.error(f"Ошибка при загрузке данных: {error_msg}")
+        logger.error(f"Ошибка загрузки данных: {error_msg}", exc_info=True)
+
+        # Показываем подсказку если ошибка БД
+        if data_source == 'db' and 'connection' in error_msg.lower():
+            st.info(
+                "💡 Совет: Проверьте подключение к базе данных. Используйте 'xlsx' как источник данных для работы без БД.")
+
         return pd.DataFrame()
 
 
@@ -232,15 +339,35 @@ def main():
     with col_header3:
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("🚪 Выход", use_container_width=True):
-            logout()
+            from auth import logout_user
+            logout_user()
             return
+
+    # Выбор источника данных (только для админов) - в sidebar перед загрузкой
+    data_source = 'db'  # По умолчанию используем БД
+
+    # Создаем sidebar для выбора источника данных
+    with st.sidebar:
+        if has_role("admin"):
+            st.markdown("### ⚙️ Настройки данных")
+            data_source = st.radio(
+                "Источник данных:",
+                ['db', 'xlsx'],
+                index=0,
+                help="db - база данных (рекомендуется), xlsx - Excel файл"
+            )
+            st.markdown("---")
 
     # Загрузка данных
     with st.spinner('Загрузка и анализ данных...'):
-        df = load_and_prepare_data()
+        df = load_and_prepare_data(data_source=data_source)
 
         if df.empty:
-            st.error("Не удалось загрузить данные. Пожалуйста, проверьте файл data/metrics.xlsx")
+            if data_source == 'db':
+                st.error("⚠️ База данных пуста или недоступна.")
+                st.info("💡 Используйте импорт данных из Excel или проверьте подключение к БД.")
+            else:
+                st.error("Не удалось загрузить данные. Пожалуйста, проверьте файл data/metrics.xlsx")
             return
 
         metrics = create_summary_metrics(df)
@@ -443,7 +570,6 @@ def main():
 
 
 def run_app():
-    load_css()
     """Основная функция запуска приложения"""
     from auth import login_page, check_auth
 
