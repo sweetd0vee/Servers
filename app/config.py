@@ -1,19 +1,28 @@
+# app/config.py
 import os
+from typing import Optional
 
-# Thresholds for server load classification
-CPU_THRESHOLDS = {
-    'low': 20,
-    'high': 70
-}
 
-MEMORY_THRESHOLDS = {
-    'low': 30,
-    'high': 80
-}
+class Config:
+    # Database
+    DB_HOST: str = os.getenv("DB_HOST", "localhost")
+    DB_PORT: int = int(os.getenv("DB_PORT", "5432"))
+    DB_NAME: str = os.getenv("DB_NAME", "server_monitoring")
 
-# LLM Configuration
-LLM_URL = os.getenv("LLM_URL", "http://llama-server:8080/completion")
-LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "90"))
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "500"))
-LLAMA_UI_URL_HEALTH = "http://llama-server:8080"
-LLAMA_UI_URL = "http://localhost"
+    # Thresholds
+    CPU_THRESHOLDS = {
+        'low': int(os.getenv("CPU_LOW_THRESHOLD", "20")),
+        'high': int(os.getenv("CPU_HIGH_THRESHOLD", "70"))
+    }
+
+    # LLM
+    LLM_URL: str = os.getenv("LLM_URL", "http://llama-server:8080/completion")
+    LLM_TIMEOUT: int = int(os.getenv("LLM_TIMEOUT", "90"))
+
+    @classmethod
+    def validate(cls) -> None:
+        """Validate configuration."""
+        required = ["DB_USER", "DB_PASSWORD"]
+        missing = [var for var in required if not os.getenv(var)]
+        if missing:
+            raise ValueError(f"Missing required env vars: {missing}")
