@@ -141,6 +141,64 @@ def create_server_classification_table(df):
         raise
 
 
+def create_summary_metrics(df):
+    """Создание карточек с метриками"""
+    if df.empty:
+        return {
+            'total_servers': 0,
+            'period': 'Нет данных',
+            'cpu_low': 0,
+            'cpu_normal': 0,
+            'cpu_high': 0,
+            'mem_low': 0,
+            'mem_normal': 0,
+            'mem_high': 0
+        }
+
+    # Общие метрики
+    total_servers = df['vm'].nunique()
+    start_date = df['date'].min().strftime('%d.%m.%Y')
+    end_date = df['date'].max().strftime('%d.%m.%Y')
+
+    # Анализ CPU нагрузки
+    cpu_data = df[df['metric'].str.contains('cpu.usage', case=False, na=False)].copy()
+    if not cpu_data.empty:
+        cpu_data['cpu_category'] = cpu_data['avg_value'].apply(
+            lambda x: 'Низкая' if x < 20 else ('Высокая' if x > 70 else 'Нормальная')
+        )
+    else:
+        cpu_data['cpu_category'] = 'Нет данных'
+
+    # Анализ Memory нагрузки
+    mem_data = df[df['metric'].str.contains('mem.usage', case=False, na=False)].copy()
+    if not mem_data.empty:
+        mem_data['mem_category'] = mem_data['avg_value'].apply(
+            lambda x: 'Низкая' if x < 30 else ('Высокая' if x > 80 else 'Нормальная')
+        )
+    else:
+        mem_data['mem_category'] = 'Нет данных'
+
+    # Подсчет по категориям
+    cpu_low = cpu_data[cpu_data['cpu_category'] == 'Низкая']['vm'].nunique()
+    cpu_normal = cpu_data[cpu_data['cpu_category'] == 'Нормальная']['vm'].nunique()
+    cpu_high = cpu_data[cpu_data['cpu_category'] == 'Высокая']['vm'].nunique()
+
+    mem_low = mem_data[mem_data['mem_category'] == 'Низкая']['vm'].nunique()
+    mem_normal = mem_data[mem_data['mem_category'] == 'Нормальная']['vm'].nunique()
+    mem_high = mem_data[mem_data['mem_category'] == 'Высокая']['vm'].nunique()
+
+    return {
+        'total_servers': total_servers,
+        'period': f"{start_date} - {end_date}",
+        'cpu_low': cpu_low,
+        'cpu_normal': cpu_normal,
+        'cpu_high': cpu_high,
+        'mem_low': mem_low,
+        'mem_normal': mem_normal,
+        'mem_high': mem_high
+    }
+
+
 def create_load_timeline(df, selected_server):
     """
     Создание таймлайна нагрузки для выбранного сервера

@@ -3,7 +3,7 @@ import streamlit as st
 import warnings
 from cpu import create_cpu_heatmap, create_cpu_load_chart
 from mem import create_memory_heatmap, create_memory_load_chart
-from table import create_load_timeline, create_server_classification_table
+from table import create_load_timeline, create_server_classification_table, create_summary_metrics
 from anomalies import create_anomaly_detection_section, detect_statistical_anomalies
 import os
 from dotenv import load_dotenv
@@ -15,6 +15,27 @@ load_dotenv()
 
 warnings.filterwarnings('ignore')
 
+# Загрузка CSS из файла
+def load_css():
+    css_path = "assets/styles.css"
+    if os.path.exists(css_path):
+        with open(css_path, "r", encoding="utf-8") as f:
+            css = f.read()
+        st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    else:
+        # Fallback к hardcoded CSS
+        st.markdown("""
+        <style>
+            /* Минимальный CSS на случай отсутствия файла */
+            .main-header {
+                font-size: 2.5rem;
+                color: #1E3A8A;
+                text-align: center;
+                padding: 20px 0;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+
 # Настройка страницы
 st.set_page_config(
     page_title="Дашборд мониторинга серверов",
@@ -22,90 +43,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# CSS для улучшения отображения (добавляем стили для авторизации)
-st.markdown("""
-<style>
-    .main-header {
-        font-size: 2.5rem;
-        color: #1E3A8A;
-        text-align: center;
-        padding: 20px 0;
-    }
-    .metric-card {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-    }
-    .warning-card {
-        background-color: #fff3cd;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-    }
-    .success-card {
-        background-color: #d4edda;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 10px 0;
-    }
-    .anomaly-card {
-        background-color: #f8d7da;
-        padding: 20px;
-        border-radius: 10px;
-        margin: 10px 0;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        height: 100%;
-    }
-    .stDataFrame {
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .stPlotlyChart {
-        padding: 10px;
-    }
-    .stButton button {
-        background-color: #1a1c24;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
-        border-radius: 8px;
-        font-weight: bold;
-        transition: all 0.3s;
-        width: 100%;
-    }
-    .stButton button:hover {
-        background-color: #2a2b34;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        padding-top: 10px !important;
-        padding-bottom: 10px !important;
-    }
-    .ai-response {
-        background-color: #f8f9fa;
-        border-left: 4px solid #17a2b8;
-        padding: 15px;
-        border-radius: 8px;
-        margin: 10px 0;
-        white-space: pre-wrap;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-    }
-    .user-info {
-        background-color: #e8f4fd;
-        padding: 10px;
-        border-radius: 8px;
-        margin: 10px 0;
-        border-left: 4px solid #007bff;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # Инициализация состояния сессии для аутентификации
 if 'authenticated' not in st.session_state:
@@ -156,11 +93,11 @@ def load_and_prepare_data(data_source='db', vm=None, start_date=None, end_date=N
             )
 
             if df.empty:
-                st.warning("⚠️ База данных пуста. Используйте импорт данных из Excel.")
+                st.warning("База данных пуста. Используйте импорт данных из Excel.")
                 # Пробуем загрузить из Excel как fallback
                 try:
                     df = pd.read_excel("../data/metrics.xlsx")
-                    st.info("📊 Загружены данные из Excel файла (fallback)")
+                    st.info("Загружены данные из Excel файла (fallback)")
                 except:
                     return pd.DataFrame()
 
@@ -247,67 +184,9 @@ def load_and_prepare_data(data_source='db', vm=None, start_date=None, end_date=N
         # Показываем подсказку если ошибка БД
         if data_source == 'db' and 'connection' in error_msg.lower():
             st.info(
-                "💡 Совет: Проверьте подключение к базе данных. Используйте 'xlsx' как источник данных для работы без БД.")
+                "Совет: Проверьте подключение к базе данных. Используйте 'xlsx' как источник данных для работы без БД.")
 
         return pd.DataFrame()
-
-
-def create_summary_metrics(df):
-    """Создание карточек с метриками"""
-    if df.empty:
-        return {
-            'total_servers': 0,
-            'period': 'Нет данных',
-            'cpu_low': 0,
-            'cpu_normal': 0,
-            'cpu_high': 0,
-            'mem_low': 0,
-            'mem_normal': 0,
-            'mem_high': 0
-        }
-
-    # Общие метрики
-    total_servers = df['vm'].nunique()
-    start_date = df['date'].min().strftime('%d.%m.%Y')
-    end_date = df['date'].max().strftime('%d.%m.%Y')
-
-    # Анализ CPU нагрузки
-    cpu_data = df[df['metric'].str.contains('cpu.usage', case=False, na=False)].copy()
-    if not cpu_data.empty:
-        cpu_data['cpu_category'] = cpu_data['avg_value'].apply(
-            lambda x: 'Низкая' if x < 20 else ('Высокая' if x > 70 else 'Нормальная')
-        )
-    else:
-        cpu_data['cpu_category'] = 'Нет данных'
-
-    # Анализ Memory нагрузки
-    mem_data = df[df['metric'].str.contains('mem.usage', case=False, na=False)].copy()
-    if not mem_data.empty:
-        mem_data['mem_category'] = mem_data['avg_value'].apply(
-            lambda x: 'Низкая' if x < 30 else ('Высокая' if x > 80 else 'Нормальная')
-        )
-    else:
-        mem_data['mem_category'] = 'Нет данных'
-
-    # Подсчет по категориям
-    cpu_low = cpu_data[cpu_data['cpu_category'] == 'Низкая']['vm'].nunique()
-    cpu_normal = cpu_data[cpu_data['cpu_category'] == 'Нормальная']['vm'].nunique()
-    cpu_high = cpu_data[cpu_data['cpu_category'] == 'Высокая']['vm'].nunique()
-
-    mem_low = mem_data[mem_data['mem_category'] == 'Низкая']['vm'].nunique()
-    mem_normal = mem_data[mem_data['mem_category'] == 'Нормальная']['vm'].nunique()
-    mem_high = mem_data[mem_data['mem_category'] == 'Высокая']['vm'].nunique()
-
-    return {
-        'total_servers': total_servers,
-        'period': f"{start_date} - {end_date}",
-        'cpu_low': cpu_low,
-        'cpu_normal': cpu_normal,
-        'cpu_high': cpu_high,
-        'mem_low': mem_low,
-        'mem_normal': mem_normal,
-        'mem_high': mem_high
-    }
 
 
 @require_auth
@@ -585,4 +464,5 @@ def run_app():
 
 
 if __name__ == "__main__":
+    load_css()
     run_app()
