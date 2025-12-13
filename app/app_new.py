@@ -203,10 +203,10 @@ def main():
     with col_header2:
         if user:
             role_badge = {
-                "admin": "🔐 Админ",
-                "user": "👤 Пользователь",
-                "viewer": "👀 Наблюдатель"
-            }.get(user.get("role", ""), "👤 Гость")
+                "admin": "Админ",
+                "user": "Пользователь",
+                "viewer": "Наблюдатель"
+            }.get(user.get("role", ""), "Гость")
 
             st.markdown(f"""
             <div class="user-info">
@@ -217,7 +217,7 @@ def main():
 
     with col_header3:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🚪 Выход", use_container_width=True):
+        if st.button("Выход", use_container_width=True):
             from auth import logout_user
             logout_user()
             return
@@ -228,7 +228,7 @@ def main():
     # Создаем sidebar для выбора источника данных
     with st.sidebar:
         if has_role("admin"):
-            st.markdown("### ⚙️ Настройки данных")
+            st.markdown("### Настройки данных")
             data_source = st.radio(
                 "Источник данных:",
                 ['db', 'xlsx'],
@@ -243,8 +243,8 @@ def main():
 
         if df.empty:
             if data_source == 'db':
-                st.error("⚠️ База данных пуста или недоступна.")
-                st.info("💡 Используйте импорт данных из Excel или проверьте подключение к БД.")
+                st.error("База данных пуста или недоступна.")
+                st.info("Используйте импорт данных из Excel или проверьте подключение к БД.")
             else:
                 st.error("Не удалось загрузить данные. Пожалуйста, проверьте файл data/metrics.xlsx")
             return
@@ -266,7 +266,7 @@ def main():
     with st.sidebar:
         # Информация о пользователе
         if user:
-            st.markdown(f"### 👤 {user.get('full_name', 'Пользователь')}")
+            st.markdown(f"### {user.get('full_name', 'Пользователь')}")
             st.markdown(f"**Роль:** {user.get('role', 'Не определена')}")
             st.markdown(f"**Email:** {user.get('email', 'Не указан')}")
             st.markdown("---")
@@ -302,10 +302,10 @@ def main():
         if has_role("admin"):
             st.markdown("---")
             st.markdown("### Администрирование")
-            if st.button("⚙️ Управление пользователями", use_container_width=True):
+            if st.button("Управление пользователями", use_container_width=True):
                 st.info("Функция управления пользователями в разработке")
 
-            if st.button("📊 Экспорт данных", use_container_width=True):
+            if st.button("Экспорт данных", use_container_width=True):
                 csv = df.to_csv(index=False)
                 st.download_button(
                     label="📥 Скачать CSV",
@@ -331,9 +331,9 @@ def main():
         st.markdown(f"""
             <div class="metric-card", style="color: black;">
                 <h3>Нагрузка CPU</h3>
-                <p>🟢 Низкая: <strong>{14}</strong> серверов</p>
-                <p>🟡 Нормальная: <strong>{5}</strong> серверов</p>
-                <p>🔴 Высокая: <strong>{1}</strong> серверов</p>
+                <p>🟢 Низкая: <strong>{metrics['cpu_low']}</strong> серверов</p>
+                <p>🟡 Нормальная: <strong>{metrics['normal']}</strong> серверов</p>
+                <p>🔴 Высокая: <strong>{metrics['cpu_high']}</strong> серверов</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -341,9 +341,9 @@ def main():
         st.markdown(f"""
             <div class="metric-card", style="color: black;">
                     <h3>Нагрузка памяти</h3>
-                    <p>🟢 Низкая: <strong>{14}</strong> серверов</p>
-                    <p>🟡 Нормальная: <strong>{6}</strong> серверов</p>
-                    <p>🔴 Высокая: <strong>{0}</strong> серверов</p>
+                    <p>🟢 Низкая: <strong>{metrics['mem_low']}</strong> серверов</p>
+                    <p>🟡 Нормальная: <strong>{metrics['mem_normal']}</strong> серверов</p>
+                    <p>🔴 Высокая: <strong>{metrics['mem_high']}</strong> серверов</p>
             </div>
             """, unsafe_allow_html=True)
 
@@ -353,7 +353,7 @@ def main():
         col_anomaly1, col_anomaly2 = st.columns([3, 1])
 
         with col_anomaly1:
-            st.markdown("### 🔍 Быстрый анализ")
+            st.markdown("### Быстрый анализ")
             st.markdown(
                 "Нажмите кнопку для детального анализа метрик, поиска аномалий и получения рекомендаций с помощью AI")
 
