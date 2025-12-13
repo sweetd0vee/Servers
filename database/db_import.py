@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 from database import get_db_connection, close_db_connection
 import io
-
+from scripts.scripts import INSERT_SQL, LOG_SQL
 
 def import_from_excel_to_db(file_path, source_type="excel"):
     """Импорт данных из Excel файла в базу данных"""
@@ -26,24 +26,6 @@ def import_from_excel_to_db(file_path, source_type="excel"):
 
         cursor = conn.cursor()
 
-        # SQL для вставки или обновления данных
-        insert_sql = """
-        INSERT INTO server_metrics (vm, date, metric, max_value, min_value, avg_value)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON CONFLICT (vm, date, metric) 
-        DO UPDATE SET 
-            max_value = EXCLUDED.max_value,
-            min_value = EXCLUDED.min_value,
-            avg_value = EXCLUDED.avg_value,
-            updated_at = CURRENT_TIMESTAMP
-        """
-
-        # SQL для логирования импорта
-        log_sql = """
-        INSERT INTO data_import_log (source_type, records_count, status)
-        VALUES (%s, %s, %s)
-        """
-
         success_count = 0
         error_count = 0
 
@@ -54,7 +36,7 @@ def import_from_excel_to_db(file_path, source_type="excel"):
                 date_val = pd.to_datetime(row['date']).date()
 
                 # Вставляем данные
-                cursor.execute(insert_sql, (
+                cursor.execute(INSERT_SQL, (
                     str(row['vm']),
                     date_val,
                     str(row['metric']),
@@ -71,7 +53,7 @@ def import_from_excel_to_db(file_path, source_type="excel"):
 
         # Логируем импорт
         status = "success" if error_count == 0 else "partial"
-        cursor.execute(log_sql, (source_type, success_count, status))
+        cursor.execute(LOG_SQL, (source_type, success_count, status))
 
         conn.commit()
 

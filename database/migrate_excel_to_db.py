@@ -16,20 +16,20 @@ def init_database():
         True если успешно, False в противном случае
     """
     try:
-        logger.info("🔄 Создание таблиц в базе данных...")
-        logger.info(f"📊 База данных: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else DATABASE_URL}")
+        logger.info("Создание таблиц в базе данных...")
+        logger.info(f"База данных: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else DATABASE_URL}")
 
         # Создаем все таблицы
         Base.metadata.create_all(bind=engine)
 
-        logger.info("✅ Таблицы созданы успешно!")
+        logger.info("Таблицы созданы успешно!")
         logger.info(f"   - Таблица: {ServerMetrics.__tablename__}")
         logger.info(f"   - Индексы: idx_metrics_vm_date, idx_metrics_date, idx_metrics_metric")
 
         return True
 
     except Exception as e:
-        logger.error(f"❌ Ошибка при создании таблиц: {e}", exc_info=True)
+        logger.error(f"Ошибка при создании таблиц: {e}", exc_info=True)
         return False
 
 
@@ -45,10 +45,10 @@ def check_database_connection():
         with engine.connect() as conn:
             result = conn.execute("SELECT 1")
             result.fetchone()
-        logger.info("✅ Подключение к базе данных успешно")
+        logger.info("Подключение к базе данных успешно")
         return True
     except Exception as e:
-        logger.error(f"❌ Ошибка подключения к базе данных: {e}")
+        logger.error(f"Ошибка подключения к базе данных: {e}")
         return False
 
 
@@ -61,7 +61,7 @@ def main():
 
     # Проверяем подключение
     if not check_database_connection():
-        print("❌ Не удалось подключиться к базе данных")
+        print("Не удалось подключиться к базе данных")
         print("Проверьте настройки подключения в переменных окружения:")
         print("  - DB_HOST")
         print("  - DB_PORT")
@@ -72,12 +72,12 @@ def main():
 
     # Создаем таблицы
     if not init_database():
-        print("❌ Не удалось создать таблицы")
+        print("Не удалось создать таблицы")
         sys.exit(1)
 
     print()
     print("=" * 60)
-    print("✅ Инициализация завершена успешно!")
+    print("Инициализация завершена успешно!")
     print("=" * 60)
     print()
     print("Следующие шаги:")
