@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from datetime import datetime, timedelta
-from database import get_db_connection, close_db_connection
+from db import get_db_connection, close_db_connection
 import io
 
 

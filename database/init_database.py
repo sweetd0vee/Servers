@@ -29,7 +29,7 @@ def init_database():
         return False
 
 
-def load_excel_to_db(excel_path="data/metrics.xlsx"):
+def load_excel_to_db(excel_path="../data/metrics.xlsx"):
     """Загрузка данных из Excel в базу данных"""
     print(f"Загрузка данных из {excel_path}...")
 
@@ -66,14 +66,14 @@ def main():
     # Загружаем данные из Excel
     excel_path = input("Введите путь к Excel файлу (по умолчанию data/metrics.xlsx): ").strip()
     if not excel_path:
-        excel_path = "data/metrics.xlsx"
+        excel_path = "../data/metrics.xlsx"
 
     if not load_excel_to_db(excel_path):
         return
 
     print("\n" + "=" * 50)
-    print("✅ Инициализация завершена успешно!")
-    print(f"📊 База данных: {DATABASE_URL}")
+    print("Инициализация завершена успешно!")
+    print(f"База данных: {DATABASE_URL}")
     print("=" * 50)
 
 

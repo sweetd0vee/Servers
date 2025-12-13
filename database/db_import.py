@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from database import get_db_connection, close_db_connection
+from db import get_db_connection, close_db_connection
 import io
 from scripts.scripts import INSERT_SQL, LOG_SQL
 

@@ -30,7 +30,7 @@ DB_HOST=postgres
 DB_PORT=5432
 DB_NAME=server_monitoring
 DB_USER=postgres
-DB_PASSWORD=your_password
+DB_PASSWORD=postgres
 ```
 
 ### 2. Инициализация базы данных
