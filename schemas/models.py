@@ -1,8 +1,7 @@
-from typing import Optional
 from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
