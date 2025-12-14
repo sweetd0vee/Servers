@@ -103,7 +103,7 @@ def load_and_prepare_data(data_source='db', vm=None, start_date=None, end_date=N
 
         elif data_source == 'xlsx':
             # Чтение данных из файла (legacy)
-            df = pd.read_excel("data/metrics.xlsx")
+            df = pd.read_excel("../data/metrics.xlsx")
         else:
             st.error(f"Неизвестный источник данных: {data_source}")
             return pd.DataFrame()
