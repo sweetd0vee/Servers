@@ -124,19 +124,6 @@ LLM_TIMEOUT = 90
 LLM_MAX_TOKENS = 500
 ```
 
-**Использование:**
-
-```python
-from app.config import CPU_THRESHOLDS, MEMORY_THRESHOLDS
-
-if cpu_value < CPU_THRESHOLDS['low']:
-    status = 'Низкая'
-elif cpu_value > CPU_THRESHOLDS['high']:
-    status = 'Высокая'
-else:
-    status = 'Нормальная'
-```
-
 ---
 
 ### 4. `cpu.py` - Визуализация CPU
@@ -190,20 +177,6 @@ DataFrame должен содержать колонки:
 - `create_empty_plot(message)` - Создание пустого графика
 - `create_error_plot(error_message)` - Создание графика с ошибкой
 - `log_memory_statistics(df)` - Логирование статистики памяти
-
-**Использование:**
-
-```python
-from app.mem import create_memory_heatmap, create_memory_load_chart
-
-heatmap = create_memory_heatmap(df)
-chart = create_memory_load_chart(df)
-
-st.plotly_chart(heatmap, use_container_width=True)
-st.plotly_chart(chart, use_container_width=True)
-```
-
----
 
 ### 6. `table.py` - Генерация таблиц
 

@@ -27,11 +27,11 @@ class ServerMetrics(Base):
     min_value = Column(DECIMAL(10, 5), nullable=True)
     avg_value = Column(DECIMAL(10, 5), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
     def __repr__(self):
         return f"<ServerMetrics(vm='{self.vm}', date='{self.date}', metric='{self.metric}', avg_value={self.avg_value})>"
 
 
 # Обратная совместимость
-Servers = ServerMetrics
+# Servers = ServerMetrics
+Base.metadata.create_all(engine)
