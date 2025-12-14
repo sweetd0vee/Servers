@@ -4,7 +4,7 @@ set -e
 
 # This script creates additional databases. The main database and user
 # are created by the entrypoint script from the environment variables.
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+psql -v ON_ERROR_STOP=1 --username "$DB_USER" <<-EOSQL
     CREATE DATABASE server_metrics;
     CREATE DATABASE keycloak;
 EOSQL

@@ -49,6 +49,8 @@ services:
       STREAMLIT_SERVER_ADDRESS: 0.0.0.0
       STREAMLIT_SERVER_BASE_URL_PATH: /dashboard
       DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
     depends_on:
       - llama-server
     deploy:  # Исправлено: ресурсы теперь в разделе deploy
@@ -89,8 +91,8 @@ services:
       ports:
         - 5432:5432
       environment:
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_USER: ${DB_USER}
+        POSTGRES_PASSWORD: ${DB_PASSWORD}
         SERVICE_5432_NAME: postgres
         SERVICE_5432_CHECK_TCP: "true"
         SERVICE_5432_CHECK_INTERVAL: 30s
