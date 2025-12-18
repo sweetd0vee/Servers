@@ -26,7 +26,7 @@ SYSTEM_ANALYSIS_PROMPT = '''
 
 '''
 
-RESOURCE_OPTIMIZATION_PROMPT = RESOURCE_OPTIMIZATION_PROMPT = '''
+RESOURCE_OPTIMIZATION_PROMPT = '''
 Ты - cloud economist и инженер по оптимизации затрат. Проанализируй конфигурацию ВМ и метрики для максимизации ROI.
 
 ИСХОДНЫЕ ДАННЫЕ:
