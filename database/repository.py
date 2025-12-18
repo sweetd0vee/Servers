@@ -60,23 +60,23 @@ class MetricsRepository:
             DataFrame с метриками
         """
         try:
-            query = self.db.query(Servers)
+            query = self.db.query(ServerMetrics)
 
             # Применяем фильтры
             if vm:
-                query = query.filter(Servers.vm == vm)
+                query = query.filter(ServerMetrics.vm == vm)
 
             if start_date:
-                query = query.filter(Servers.date >= start_date)
+                query = query.filter(ServerMetrics.date >= start_date)
 
             if end_date:
-                query = query.filter(Servers.date <= end_date)
+                query = query.filter(ServerMetrics.date <= end_date)
 
             if metric:
-                query = query.filter(Servers.metric.like(f'%{metric}%'))
+                query = query.filter(ServerMetrics.metric.like(f'%{metric}%'))
 
             # Сортировка
-            query = query.order_by(Servers.vm, Servers.date, Servers.metric)
+            query = query.order_by(ServerMetrics.vm, ServerMetrics.date, ServerMetrics.metric)
 
             # Ограничение
             if limit:
@@ -155,7 +155,7 @@ class MetricsRepository:
             Список имен серверов
         """
         try:
-            servers = self.db.query(Servers.vm).distinct().order_by(Servers.vm).all()
+            servers = self.db.query(ServerMetrics.vm).distinct().order_by(ServerMetrics.vm).all()
             return [s[0] for s in servers]
         except Exception as e:
             logger.error(f"Ошибка при получении списка серверов: {e}")
@@ -169,7 +169,7 @@ class MetricsRepository:
             Список метрик
         """
         try:
-            metrics = self.db.query(Servers.metric).distinct().order_by(Servers.metric).all()
+            metrics = self.db.query(ServerMetrics.metric).distinct().order_by(ServerMetrics.metric).all()
             return [m[0] for m in metrics]
         except Exception as e:
             logger.error(f"Ошибка при получении списка метрик: {e}")
@@ -183,8 +183,8 @@ class MetricsRepository:
             Словарь с 'min_date' и 'max_date'
         """
         try:
-            min_date = self.db.query(func.min(Servers.date)).scalar()
-            max_date = self.db.query(func.max(Servers.date)).scalar()
+            min_date = self.db.query(func.min(ServerMetrics.date)).scalar()
+            max_date = self.db.query(func.max(ServerMetrics.date)).scalar()
 
             return {
                 'min_date': min_date,
@@ -219,11 +219,11 @@ class MetricsRepository:
         """
         try:
             # Проверяем существование записи
-            existing = self.db.query(Servers).filter(
+            existing = self.db.query(ServerMetrics).filter(
                 and_(
-                    Servers.vm == vm,
-                    Servers.date == date,
-                    Servers.metric == metric
+                    ServerMetrics.vm == vm,
+                    ServerMetrics.date == date,
+                    ServerMetrics.metric == metric
                 )
             ).first()
 
@@ -234,7 +234,7 @@ class MetricsRepository:
                 existing.avg_value = avg_value
             else:
                 # Создаем новую запись
-                new_metric = Servers(
+                new_metric = ServerMetrics(
                     vm=vm,
                     date=date,
                     metric=metric,
@@ -373,8 +373,8 @@ class MetricsRepository:
         try:
             cutoff_date = datetime.now().date() - pd.Timedelta(days=days)
 
-            deleted = self.db.query(Servers).filter(
-                Servers.date < cutoff_date
+            deleted = self.db.query(ServerMetrics).filter(
+                ServerMetrics.date < cutoff_date
             ).delete()
 
             self.db.commit()

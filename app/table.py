@@ -1,7 +1,7 @@
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from config import Config
+from config.config import Config
 
 import os
 import sys

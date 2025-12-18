@@ -19,3 +19,4 @@ PyJWT==2.10.1
 cryptography==41.0.7
 matplotlib==3.9.4
 pydantic==2.12.5
+pytest==7.4.4

@@ -224,12 +224,12 @@ def logout_user():
 
 def login_page():
     """Keycloak login page"""
-    st.title("🔐 Keycloak Authentication")
+    st.title("Keycloak Authentication")
 
     with st.container():
         col1, col2, col3 = st.columns([1, 2, 1])
         with col2:
-            st.markdown("### Single Sign-On with Keycloak")
+            st.markdown("### SSO with Keycloak")
 
             # Get authorization URL
             auth_url = get_auth_url()
@@ -429,7 +429,7 @@ def display_user_info():
                 st.sidebar.text(f"Email: {user_info['email']}")
 
         # Logout button
-        if st.sidebar.button("🚪 Logout", type="primary", use_container_width=True):
+        if st.sidebar.button("Logout", type="primary", use_container_width=True):
             logout_user()
 
 
@@ -437,7 +437,7 @@ def display_user_info():
 @require_auth
 def dashboard_page():
     """Main dashboard page (requires authentication)"""
-    st.title("📊 Dashboard")
+    st.title("Dashboard")
 
     user_info = get_current_user()
     if user_info:
