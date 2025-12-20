@@ -85,3 +85,4 @@ def test_has_role_checks_realm_roles(monkeypatch, rsa_keys, patch_streamlit):
     assert auth.has_role(["admin"]) is True
     assert auth.has_role(["viewer"]) is False
 
+

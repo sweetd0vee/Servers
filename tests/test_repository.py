@@ -87,3 +87,4 @@ def test_insert_from_dataframe(sqlite_session):
     all_df = repo.get_all_metrics()
     assert len(all_df) == 2
 
+

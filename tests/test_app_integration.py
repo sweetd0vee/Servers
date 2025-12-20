@@ -58,3 +58,4 @@ def test_dashboard_shows_summary_cards_and_controls():
     assert "Всего серверов" in text_blocks
     assert any(btn.label == "Запустить" for btn in at.button), "Anomaly analysis trigger missing"
 
+
