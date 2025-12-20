@@ -1,7 +1,8 @@
-import plotly.express as px
-
 import os
 import sys
+
+import plotly.express as px
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from base_logger import logger
 

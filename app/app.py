@@ -1,14 +1,18 @@
+import os
+import warnings
+
 import pandas as pd
 import streamlit as st
-import warnings
+from base_logger import logger
+from dotenv import load_dotenv
+
+from anomalies import (create_anomaly_detection_section,
+                       detect_statistical_anomalies)
+from auth import get_current_user, has_role, require_auth
 from cpu import create_cpu_heatmap, create_cpu_load_chart
 from mem import create_memory_heatmap, create_memory_load_chart
-from table import create_load_timeline, create_server_classification_table, create_summary_metrics
-from anomalies import create_anomaly_detection_section, detect_statistical_anomalies
-import os
-from dotenv import load_dotenv
-from auth import require_auth, get_current_user, has_role
-from base_logger import logger
+from table import (create_load_timeline, create_server_classification_table,
+                   create_summary_metrics)
 
 # Загружаем переменные окружения (для API ключей)
 load_dotenv()
@@ -77,8 +81,9 @@ def load_and_prepare_data(data_source='db', vm=None, start_date=None, end_date=N
     try:
         if data_source == 'db':
             # Чтение данных из базы данных
-            from database.repository import get_metrics_from_db
             from datetime import date as date_type
+
+            from database.repository import get_metrics_from_db
 
             # Преобразуем даты если нужно
             if start_date and isinstance(start_date, str):

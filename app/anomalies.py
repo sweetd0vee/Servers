@@ -1,8 +1,9 @@
-import streamlit as st
-from llm import call_ai_analysis
-import requests
-
 import logging
+
+import requests
+import streamlit as st
+
+from llm import call_ai_analysis
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

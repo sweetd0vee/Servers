@@ -39,11 +39,12 @@
     analyzer = get_analyzer()  # Использует настройки из env
     result = analyzer.analyze(context)
 """
+import logging
 import os
 import re
+from typing import Any, Dict, Optional, Union
+
 import requests
-from typing import Dict, Any, Optional, Union
-import logging
 
 # Попытка импортировать streamlit (может быть недоступен вне Streamlit окружения)
 try:
@@ -58,8 +59,8 @@ logger = logging.getLogger(__name__)
 
 # Попытка импортировать transformers (может быть недоступен)
 try:
-    from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
     import torch
+    from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 
     TRANSFORMERS_AVAILABLE = True
 except ImportError:

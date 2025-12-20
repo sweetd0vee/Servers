@@ -1,10 +1,11 @@
-import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-from config.config import Config
-
 import os
 import sys
+
+import pandas as pd
+import plotly.graph_objects as go
+from config.config import Config
+from plotly.subplots import make_subplots
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from base_logger import logger
 
